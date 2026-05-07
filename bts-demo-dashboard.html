@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clairen Haus — BTS ABA Operations</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#0a1510;--bg2:#0d1c14;--card:#111f17;--card2:#172a1e;--card3:#1c3226;
+      --border:rgba(46,196,182,0.1);--border2:rgba(46,196,182,0.18);
+      --teal:#2ec4b6;--teal-dim:rgba(46,196,182,0.08);--teal-glow:rgba(46,196,182,0.18);
+      --gold:#d4a843;--gold-dim:rgba(212,168,67,0.1);
+      --red:#e05c5c;--red-dim:rgba(224,92,92,0.1);
+      --green:#52c97a;--green-dim:rgba(82,201,122,0.1);
+      --text:#b8d4cc;--text-mid:#6b9e92;--text-dim:#3d6057;--white:#e2f0eb;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100%;overflow:hidden;}
+    body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;}
+
+    /* TOPBAR */
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;height:50px;background:var(--bg2);border-bottom:1px solid var(--border2);flex-shrink:0;}
+    .top-left{display:flex;align-items:center;gap:1rem;}
+    .top-logo{font-family:'Fira Mono',monospace;font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--teal);}
+    .top-div{width:1px;height:16px;background:var(--border2);}
+    .top-client{font-size:0.82rem;font-weight:600;color:var(--white);}
+    .top-client span{color:var(--text-mid);font-weight:400;margin-left:0.4rem;}
+    .top-right{display:flex;align-items:center;gap:1.25rem;}
+    .sys-status{display:flex;align-items:center;gap:0.4rem;font-family:'Fira Mono',monospace;font-size:0.63rem;letter-spacing:0.1em;color:var(--green);}
+    .sdot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:glow 2.5s infinite;}
+    @keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(82,201,122,0.5);}50%{box-shadow:0 0 0 4px rgba(82,201,122,0);}}
+    .top-time{font-family:'Fira Mono',monospace;font-size:0.63rem;color:var(--text-dim);}
+
+    /* TABS */
+    .tabs{display:flex;padding:0 1.5rem;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
+    .tab{padding:0.6rem 1rem;font-size:0.78rem;font-weight:500;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;user-select:none;white-space:nowrap;}
+    .tab:hover{color:var(--text-mid);}
+    .tab.active{color:var(--teal);border-bottom-color:var(--teal);}
+
+    /* CONTENT */
+    .content{flex:1;overflow-y:auto;padding:1.1rem 1.5rem;scrollbar-width:thin;scrollbar-color:var(--card3) transparent;}
+    .content::-webkit-scrollbar{width:3px;}
+    .content::-webkit-scrollbar-thumb{background:var(--card3);border-radius:2px;}
+    .panel{display:none;}.panel.active{display:block;}
+
+    /* STAT ROW */
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:0.65rem;margin-bottom:1rem;}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:1rem 1.1rem;}
+    .slabel{font-family:'Fira Mono',monospace;font-size:0.56rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:0.4rem;}
+    .snum{font-size:1.85rem;font-weight:700;line-height:1;color:var(--teal);margin-bottom:0.25rem;}
+    .snum.w{color:var(--white);}.snum.g{color:var(--gold);}.snum.r{color:var(--red);}
+    .ssub{font-size:0.7rem;color:var(--text-dim);}
+    .ssub.up{color:var(--green);}.ssub.warn{color:var(--gold);}
+
+    /* GRIDS */
+    .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.65rem;margin-bottom:1rem;}
+    .g2{display:grid;grid-template-columns:1fr 1fr;gap:0.65rem;margin-bottom:1rem;}
+    .g2c{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+    .col-stack{display:flex;flex-direction:column;gap:0.65rem;}
+
+    /* PCARD */
+    .pcard{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:0;}
+    .phead{display:flex;align-items:center;justify-content:space-between;padding:0.7rem 1rem;border-bottom:1px solid var(--border);}
+    .ptitle{font-size:0.78rem;font-weight:600;color:var(--white);}
+    .pbadge{font-family:'Fira Mono',monospace;font-size:0.56rem;letter-spacing:0.08em;padding:0.18rem 0.5rem;border-radius:100px;}
+    .bl{background:var(--green-dim);color:var(--green);border:1px solid rgba(82,201,122,0.2);}
+    .ba{background:var(--teal-dim);color:var(--teal);border:1px solid var(--border2);}
+    .bw{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(212,168,67,0.2);}
+    .br{background:var(--red-dim);color:var(--red);border:1px solid rgba(224,92,92,0.2);}
+
+    /* FEED */
+    .feed-item{display:flex;align-items:flex-start;gap:0.65rem;padding:0.58rem 1rem;border-bottom:1px solid var(--border);transition:background 0.15s;}
+    .feed-item:last-child{border-bottom:none;}
+    .feed-item:hover{background:var(--teal-dim);}
+    .ficon{width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;flex-shrink:0;margin-top:0.05rem;}
+    .ft{background:var(--teal-dim);color:var(--teal);}
+    .fg{background:var(--green-dim);color:var(--green);}
+    .fo{background:var(--gold-dim);color:var(--gold);}
+    .fr{background:var(--red-dim);color:var(--red);}
+    .fbody{flex:1;}
+    .ftext{font-size:0.76rem;color:var(--text);line-height:1.4;}
+    .ftext strong{color:var(--white);font-weight:600;}
+    .ftime{font-family:'Fira Mono',monospace;font-size:0.58rem;color:var(--text-dim);margin-top:0.1rem;}
+
+    /* METRICS */
+    .mrow{display:flex;align-items:center;padding:0.5rem 1rem;border-bottom:1px solid var(--border);gap:0.75rem;}
+    .mrow:last-child{border-bottom:none;}
+    .mlabel{font-size:0.74rem;color:var(--text-mid);flex:1;}
+    .mbar-w{flex:1.2;height:4px;background:var(--card3);border-radius:2px;overflow:hidden;}
+    .mbar{height:100%;border-radius:2px;background:var(--teal);}
+    .mbar.gold{background:var(--gold);}.mbar.red{background:var(--red);}
+    .mval{font-family:'Fira Mono',monospace;font-size:0.68rem;color:var(--white);width:38px;text-align:right;}
+
+    /* ATTENTION */
+    .aitem{display:flex;align-items:center;justify-content:space-between;padding:0.65rem 1rem;border-bottom:1px solid var(--border);gap:0.75rem;}
+    .aitem:last-child{border-bottom:none;}
+    .aleft{flex:1;min-width:0;}
+    .atitle{font-size:0.76rem;font-weight:600;color:var(--white);margin-bottom:0.12rem;}
+    .asub{font-size:0.69rem;color:var(--text-dim);}
+    .abtn{font-family:'Fira Mono',monospace;font-size:0.58rem;letter-spacing:0.06em;padding:0.24rem 0.65rem;border-radius:5px;border:none;cursor:pointer;white-space:nowrap;transition:opacity 0.15s;font-weight:500;}
+    .abtn:hover{opacity:0.8;}
+    .ab-s{background:var(--teal);color:var(--bg);}
+    .ab-r{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(212,168,67,0.3);}
+    .ab-a{background:var(--red-dim);color:var(--red);border:1px solid rgba(224,92,92,0.3);}
+    .ab-c{background:var(--green-dim);color:var(--green);border:1px solid rgba(82,201,122,0.3);}
+
+    /* IMPACT */
+    .impact{padding:0.65rem 1rem;background:var(--teal-dim);border-top:1px solid var(--border2);font-size:0.71rem;color:var(--text-mid);line-height:1.5;}
+    .impact strong{color:var(--teal);}
+
+    /* KANBAN */
+    .kanban{display:flex;gap:0.65rem;overflow-x:auto;padding-bottom:0.5rem;scrollbar-width:thin;scrollbar-color:var(--card3) transparent;}
+    .kanban::-webkit-scrollbar{height:3px;}
+    .kanban::-webkit-scrollbar-thumb{background:var(--card3);}
+    .kcol{background:var(--card);border:1px solid var(--border);border-radius:8px;min-width:200px;flex-shrink:0;}
+    .khead{padding:0.6rem 0.85rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .kctitle{font-family:'Fira Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);}
+    .kcnt{font-family:'Fira Mono',monospace;font-size:0.65rem;color:var(--teal);background:var(--teal-dim);padding:0.08rem 0.4rem;border-radius:100px;}
+    .kcards{padding:0.5rem;display:flex;flex-direction:column;gap:0.4rem;min-height:60px;}
+    .kcard{background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:0.58rem 0.72rem;cursor:default;transition:all 0.15s;}
+    .kcard:hover{border-color:var(--border2);background:var(--card3);}
+    .kname{font-size:0.76rem;font-weight:600;color:var(--white);margin-bottom:0.15rem;}
+    .ksub{font-size:0.68rem;color:var(--text-dim);line-height:1.3;}
+    .ktag{display:inline-block;margin-top:0.3rem;font-family:'Fira Mono',monospace;font-size:0.56rem;padding:0.12rem 0.38rem;border-radius:3px;}
+    .ktt{background:var(--teal-dim);color:var(--teal);}
+    .ktg{background:var(--gold-dim);color:var(--gold);}
+    .ktr{background:var(--red-dim);color:var(--red);}
+    .ktgr{background:var(--green-dim);color:var(--green);}
+    .kmore{font-size:0.68rem;color:var(--text-dim);text-align:center;padding:0.25rem;font-family:'Fira Mono',monospace;}
+
+    /* TABLE */
+    .tbl{width:100%;border-collapse:collapse;font-size:0.76rem;}
+    .tbl th{font-family:'Fira Mono',monospace;font-size:0.56rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);padding:0.5rem 0.9rem;text-align:left;border-bottom:1px solid var(--border);background:var(--card);}
+    .tbl td{padding:0.55rem 0.9rem;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;}
+    .tbl tr:last-child td{border-bottom:none;}
+    .tbl tr:hover td{background:var(--teal-dim);}
+
+    /* PILLS */
+    .pill{display:inline-block;font-family:'Fira Mono',monospace;font-size:0.58rem;padding:0.15rem 0.48rem;border-radius:100px;letter-spacing:0.05em;}
+    .pg{background:var(--green-dim);color:var(--green);border:1px solid rgba(82,201,122,0.2);}
+    .po{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(212,168,67,0.2);}
+    .pr{background:var(--red-dim);color:var(--red);border:1px solid rgba(224,92,92,0.2);}
+    .pt{background:var(--teal-dim);color:var(--teal);border:1px solid var(--border2);}
+    .pd{background:var(--card3);color:var(--text-dim);border:1px solid var(--border);}
+
+    /* SUPERVISION */
+    .supv-item{display:flex;align-items:center;padding:0.6rem 1rem;border-bottom:1px solid var(--border);gap:0.75rem;}
+    .supv-item:last-child{border-bottom:none;}
+    .supv-info{flex:1;}
+    .supv-name{font-size:0.76rem;font-weight:500;color:var(--text);}
+    .supv-sub{font-size:0.68rem;color:var(--text-dim);margin-top:0.1rem;}
+    .supv-bw{flex:1;height:4px;background:var(--card3);border-radius:2px;margin:0 0.75rem;overflow:hidden;}
+    .supv-bar{height:100%;border-radius:2px;background:var(--teal);}
+    .supv-bar.warn{background:var(--gold);}.supv-bar.ok{background:var(--green);}
+    .supv-val{font-family:'Fira Mono',monospace;font-size:0.65rem;color:var(--text-dim);white-space:nowrap;}
+
+    /* BILLING */
+    .brow{display:flex;align-items:center;padding:0.6rem 1rem;border-bottom:1px solid var(--border);gap:0.75rem;}
+    .brow:last-child{border-bottom:none;}
+    .bname{font-size:0.76rem;color:var(--text);flex:1;}
+    .bamt{font-family:'Fira Mono',monospace;font-size:0.76rem;color:var(--white);margin-right:0.5rem;}
+
+    /* AUTH */
+    .auth-item{display:flex;align-items:center;padding:0.6rem 1rem;border-bottom:1px solid var(--border);gap:0.75rem;}
+    .auth-item:last-child{border-bottom:none;}
+    .auth-left{flex:1;}
+    .auth-name{font-size:0.76rem;font-weight:500;color:var(--text);margin-bottom:0.1rem;}
+    .auth-det{font-size:0.68rem;color:var(--text-dim);}
+    .auth-right{display:flex;align-items:center;gap:0.5rem;flex-shrink:0;}
+    .auth-days{font-family:'Fira Mono',monospace;font-size:0.62rem;color:var(--text-dim);}
+
+    /* AUTOMATIONS */
+    .auto-item{display:flex;align-items:center;justify-content:space-between;padding:0.55rem 1rem;border-bottom:1px solid var(--border);gap:0.75rem;}
+    .auto-item:last-child{border-bottom:none;}
+    .aleft2{flex:1;}
+    .acat{font-family:'Fira Mono',monospace;font-size:0.56rem;color:var(--text-dim);margin-bottom:0.08rem;letter-spacing:0.06em;}
+    .aname{font-size:0.76rem;font-weight:500;color:var(--text);}
+    .aright{display:flex;align-items:center;gap:0.5rem;flex-shrink:0;}
+    .acnt{font-family:'Fira Mono',monospace;font-size:0.62rem;color:var(--text-dim);}
+    .astatus{font-family:'Fira Mono',monospace;font-size:0.56rem;padding:0.15rem 0.45rem;border-radius:4px;letter-spacing:0.06em;}
+    .as-a{background:var(--green-dim);color:var(--green);border:1px solid rgba(82,201,122,0.2);}
+    .as-r{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(212,168,67,0.2);}
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="top-left">
+    <div class="top-logo">Clairen Haus</div>
+    <div class="top-div"></div>
+    <div class="top-client">Client: <strong>Beyond The Spectrum (BTS)</strong><span>· ABA Practice Automation · Alpharetta, GA</span></div>
+  </div>
+  <div class="top-right">
+    <div class="sys-status"><div class="sdot"></div>System Active</div>
+    <div class="top-time" id="clock"></div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="sw('overview')">Overview</div>
+  <div class="tab" onclick="sw('clients')">Client Board</div>
+  <div class="tab" onclick="sw('schedule')">Schedule & Staff</div>
+  <div class="tab" onclick="sw('billing')">Billing & Authorizations</div>
+  <div class="tab" onclick="sw('automations')">Automations</div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- ══ OVERVIEW ══ -->
+  <div class="panel active" id="panel-overview">
+    <div class="stats-row">
+      <div class="stat-card"><div class="slabel">New Inquiries (30 days)</div><div class="snum">41</div><div class="ssub up">↑ 12 vs prior month</div></div>
+      <div class="stat-card"><div class="slabel">Session Utilization</div><div class="snum">87<span style="font-size:1rem">%</span></div><div class="ssub up">↑ from 71% pre-system</div></div>
+      <div class="stat-card"><div class="slabel">Automations Fired Today</div><div class="snum w" id="fired-ov">247</div><div class="ssub">across 8 categories</div></div>
+      <div class="stat-card"><div class="slabel">Needs Attention</div><div class="snum r">4</div><div class="ssub warn">assisted items</div></div>
+    </div>
+
+    <div class="g3">
+      <!-- Live Feed -->
+      <div class="pcard">
+        <div class="phead"><div class="ptitle">Live Activity Feed</div><div class="pbadge bl">Live</div></div>
+        <div class="feed-item"><div class="ficon ft">📞</div><div class="fbody"><div class="ftext"><strong>AI voice agent</strong> answered call — new family inquiry, Marcus T.</div><div class="ftime">3 min ago</div></div></div>
+        <div class="feed-item"><div class="ficon fg">✓</div><div class="fbody"><div class="ftext"><strong>Session reminder</strong> confirmed — Johnson, Amara · 2:00 PM</div><div class="ftime">11 min ago</div></div></div>
+        <div class="feed-item"><div class="ficon fo">📋</div><div class="fbody"><div class="ftext"><strong>Intake packet</strong> sent to Williams family after booking</div><div class="ftime">18 min ago</div></div></div>
+        <div class="feed-item"><div class="ficon ft">🔔</div><div class="fbody"><div class="ftext"><strong>Auth renewal</strong> reminder sent — Rivera, Sofia · expires in 14 days</div><div class="ftime">24 min ago</div></div></div>
+        <div class="feed-item"><div class="ficon fg">💬</div><div class="fbody"><div class="ftext"><strong>Session note reminder</strong> sent to RBT — Thompson session incomplete</div><div class="ftime">31 min ago</div></div></div>
+        <div class="feed-item"><div class="ficon fo">📄</div><div class="fbody"><div class="ftext"><strong>Daily ops digest</strong> delivered to BTS leadership · 8:00 AM</div><div class="ftime">3 hrs ago</div></div></div>
+        <div class="feed-item"><div class="ficon ft">👥</div><div class="fbody"><div class="ftext"><strong>IEP coordination email</strong> sent — Brown, Isaiah · Roswell Elementary</div><div class="ftime">4 hrs ago</div></div></div>
+        <div class="feed-item"><div class="ficon fg">⭐</div><div class="fbody"><div class="ftext"><strong>Google review request</strong> sent — Davis family · 90-day milestone</div><div class="ftime">5 hrs ago</div></div></div>
+      </div>
+
+      <!-- Performance Metrics -->
+      <div class="pcard">
+        <div class="phead"><div class="ptitle">Session & Collections Performance</div><div class="pbadge ba">This Month</div></div>
+        <div class="mrow"><div class="mlabel">Co-pay collected pre-session</div><div class="mbar-w"><div class="mbar" style="width:84%"></div></div><div class="mval">84%</div></div>
+        <div class="mrow"><div class="mlabel">Session note completion rate</div><div class="mbar-w"><div class="mbar" style="width:96%"></div></div><div class="mval">96%</div></div>
+        <div class="mrow"><div class="mlabel">No-show rate</div><div class="mbar-w"><div class="mbar red" style="width:6%"></div></div><div class="mval">6%</div></div>
+        <div class="mrow"><div class="mlabel">Waitlist-to-enrolled conversion</div><div class="mbar-w"><div class="mbar" style="width:74%"></div></div><div class="mval">74%</div></div>
+        <div class="mrow"><div class="mlabel">Auth renewals on-time</div><div class="mbar-w"><div class="mbar" style="width:100%"></div></div><div class="mval">100%</div></div>
+        <div class="mrow"><div class="mlabel">Family satisfaction check-in</div><div class="mbar-w"><div class="mbar" style="width:92%"></div></div><div class="mval">92%</div></div>
+        <div class="mrow"><div class="mlabel">Referral source follow-ups sent</div><div class="mbar-w"><div class="mbar" style="width:100%"></div></div><div class="mval">100%</div></div>
+        <div class="impact"><strong>247 automations fired today</strong> · 0 missed inquiries · 0 lapsed authorizations · 96% billing readiness</div>
+      </div>
+
+      <!-- Needs Attention -->
+      <div class="pcard">
+        <div class="phead"><div class="ptitle">Needs Your Attention</div><div class="pbadge bw">4 Items</div></div>
+        <div class="aitem"><div class="aleft"><div class="atitle">Auth renewal — Rivera, Sofia</div><div class="asub">Cigna · expires in 14 days · docs needed</div></div><button class="abtn ab-s">Submit</button></div>
+        <div class="aitem"><div class="aleft"><div class="atitle">Session note incomplete — Thompson</div><div class="asub">RBT notified · 2nd reminder sent · billing held</div></div><button class="abtn ab-r">Review</button></div>
+        <div class="aitem"><div class="aleft"><div class="atitle">Dual insurance — Okafor family</div><div class="asub">Primary carrier unconfirmed · coordination flag</div></div><button class="abtn ab-c">Confirm</button></div>
+        <div class="aitem"><div class="aleft"><div class="atitle">Balance outstanding — Patel, $640</div><div class="asub">Day 34 · 3 reminders sent · escalation ready</div></div><button class="abtn ab-a">Escalate</button></div>
+      </div>
+    </div>
+
+    <!-- Automation Health -->
+    <div class="pcard">
+      <div class="phead"><div class="ptitle">Automation Health</div><div class="pbadge ba">54 Active</div></div>
+      <div class="g2c">
+        <div class="auto-item"><div class="aleft2"><div class="acat">Intake & Calls</div><div class="aname">AI voice agent — all inbound</div></div><div class="aright"><div class="acnt">68x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Intake & Calls</div><div class="aname">Missed call text follow-up</div></div><div class="aright"><div class="acnt">12x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Session Notes</div><div class="aname">Incomplete note reminders to RBTs</div></div><div class="aright"><div class="acnt">8x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Scheduling</div><div class="aname">Multi-touch session reminders</div></div><div class="aright"><div class="acnt">43x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Authorizations</div><div class="aname">Auth expiration tracking & alerts</div></div><div class="aright"><div class="acnt">18x today</div><div class="astatus as-r">Review</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Family Comms</div><div class="aname">IEP team & school coordination</div></div><div class="aright"><div class="acnt">4x today</div><div class="astatus as-a">Active</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CLIENT BOARD ══ -->
+  <div class="panel" id="panel-clients">
+    <div class="stats-row">
+      <div class="stat-card"><div class="slabel">New Inquiries</div><div class="snum">7</div><div class="ssub">in pipeline</div></div>
+      <div class="stat-card"><div class="slabel">Intake In Progress</div><div class="snum w">5</div><div class="ssub">awaiting docs</div></div>
+      <div class="stat-card"><div class="slabel">Auth Pending</div><div class="snum g">4</div><div class="ssub warn">follow-up running</div></div>
+      <div class="stat-card"><div class="slabel">Active Clients</div><div class="snum">38</div><div class="ssub up">↑ 6 this month</div></div>
+    </div>
+
+    <div class="kanban" style="margin-bottom:1rem;">
+      <div class="kcol">
+        <div class="khead"><div class="kctitle">New Inquiry</div><div class="kcnt">7</div></div>
+        <div class="kcards">
+          <div class="kcard"><div class="kname">Marcus T.</div><div class="ksub">Called 8:14 AM · intake started</div><span class="ktag ktt">Auto follow-up active</span></div>
+          <div class="kcard"><div class="kname">Williams Family</div><div class="ksub">Web inquiry · referred by pediatrician</div><span class="ktag ktt">Intake packet sent</span></div>
+          <div class="kcard"><div class="kname">Chen, David</div><div class="ksub">After-hours voicemail</div><span class="ktag ktg">Text sent · 7:42 AM</span></div>
+          <div class="kcard"><div class="kname">Nguyen, Lily</div><div class="ksub">School IEP referral</div><span class="ktag ktt">Outreach sequence</span></div>
+          <div class="kmore">+ 3 more in sequence</div>
+        </div>
+      </div>
+
+      <div class="kcol">
+        <div class="khead"><div class="kctitle">Intake In Progress</div><div class="kcnt">5</div></div>
+        <div class="kcards">
+          <div class="kcard"><div class="kname">Johnson, Amara</div><div class="ksub">3/5 docs received</div><span class="ktag ktg">HIPAA pending</span></div>
+          <div class="kcard"><div class="kname">Patel, Rohan</div><div class="ksub">5/5 docs · ins. verify running</div><span class="ktag ktt">Auto-verification</span></div>
+          <div class="kcard"><div class="kname">Garcia, Elena</div><div class="ksub">Consent sent · awaiting sig</div><span class="ktag ktg">Reminder #2 sent</span></div>
+          <div class="kcard"><div class="kname">Thompson, James</div><div class="ksub">Assessment Thu · docs complete</div><span class="ktag ktgr">On track</span></div>
+          <div class="kmore">+ 1 more</div>
+        </div>
+      </div>
+
+      <div class="kcol">
+        <div class="khead"><div class="kctitle">Auth Pending</div><div class="kcnt">4</div></div>
+        <div class="kcards">
+          <div class="kcard"><div class="kname">Rivera, Sofia</div><div class="ksub">Cigna · submitted · day 3</div><span class="ktag ktg">Follow-up #2 sent</span></div>
+          <div class="kcard"><div class="kname">Okafor, Emeka</div><div class="ksub">Aetna · dual insurance flag</div><span class="ktag ktr">Needs attention</span></div>
+          <div class="kcard"><div class="kname">Kim, Soo-Yeon</div><div class="ksub">BCBS · day 8 of review</div><span class="ktag ktg">Escalation ready</span></div>
+          <div class="kcard"><div class="kname">Anderson, Trey</div><div class="ksub">United · approved · scheduling</div><span class="ktag ktgr">Approved</span></div>
+        </div>
+      </div>
+
+      <div class="kcol">
+        <div class="khead"><div class="kctitle">Active</div><div class="kcnt">38</div></div>
+        <div class="kcards">
+          <div class="kcard"><div class="kname">Davis, Malik</div><div class="ksub">20 hrs/wk · BCBA: Dr. Reyes</div><span class="ktag ktgr">Auth good · 60 days</span></div>
+          <div class="kcard"><div class="kname">Park, Jenna</div><div class="ksub">15 hrs/wk · RBT: Taylor</div><span class="ktag ktg">Auth renews in 21 days</span></div>
+          <div class="kcard"><div class="kname">Brown, Isaiah</div><div class="ksub">25 hrs/wk · goal review this week</div><span class="ktag ktgr">On track</span></div>
+          <div class="kmore">+ 35 more active</div>
+        </div>
+      </div>
+
+      <div class="kcol">
+        <div class="khead"><div class="kctitle">Paused / Re-engage</div><div class="kcnt">5</div></div>
+        <div class="kcards">
+          <div class="kcard"><div class="kname">Torres, Marco</div><div class="ksub">Paused 6 weeks · family travel</div><span class="ktag ktt">Re-engage seq. running</span></div>
+          <div class="kcard"><div class="kname">Lewis, Ava</div><div class="ksub">Paused · insurance lapse</div><span class="ktag ktg">Auth assist needed</span></div>
+          <div class="kcard"><div class="kname">Wilson, Noah</div><div class="ksub">Graduated · referral ask sent</div><span class="ktag ktgr">Review req. sent</span></div>
+          <div class="kmore">+ 2 more</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SCHEDULE & STAFF ══ -->
+  <div class="panel" id="panel-schedule">
+    <div class="stats-row">
+      <div class="stat-card"><div class="slabel">Today's Sessions</div><div class="snum">24</div><div class="ssub up">22 confirmed · 2 pending</div></div>
+      <div class="stat-card"><div class="slabel">Waitlist Backfills Today</div><div class="snum" style="color:var(--teal)">3</div><div class="ssub up">auto-filled from cancellations</div></div>
+      <div class="stat-card"><div class="slabel">No-Shows This Week</div><div class="snum g">2</div><div class="ssub">slots recovered · reminders sent</div></div>
+      <div class="stat-card"><div class="slabel">PTO / Coverage Alerts</div><div class="snum r">1</div><div class="ssub warn">coverage needed Fri</div></div>
+    </div>
+
+    <div class="g2">
+      <!-- Session Schedule -->
+      <div class="pcard">
+        <div class="phead"><div class="ptitle">Today's Session Schedule</div><div class="pbadge bl">Live</div></div>
+        <table class="tbl">
+          <thead><tr><th>Time</th><th>Client</th><th>RBT</th><th>Type</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>9:00 AM</td><td>Davis, Malik</td><td>Taylor R.</td><td>Center</td><td><span class="pill pg">Confirmed</span></td></tr>
+            <tr><td>9:30 AM</td><td>Park, Jenna</td><td>Morgan L.</td><td>Center</td><td><span class="pill pg">Confirmed</span></td></tr>
+            <tr><td>10:00 AM</td><td>Brown, Isaiah</td><td>Jordan K.</td><td>Center</td><td><span class="pill pg">Confirmed</span></td></tr>
+            <tr><td>10:30 AM</td><td>Johnson, Amara</td><td>Taylor R.</td><td>In-Home</td><td><span class="pill po">Pending</span></td></tr>
+            <tr><td>1:00 PM</td><td>Thompson, James</td><td>Morgan L.</td><td>After-school</td><td><span class="pill pg">Confirmed</span></td></tr>
+            <tr><td>2:00 PM</td><td>Garcia, Elena</td><td>Jordan K.</td><td>Center</td><td><span class="pill pg">Confirmed</span></td></tr>
+            <tr><td>3:30 PM</td><td>Rivera, Sofia</td><td>Alex M.</td><td>Center</td><td><span class="pill pt">Waitlist fill</span></td></tr>
+            <tr><td>4:00 PM</td><td>Kim, Soo-Yeon</td><td>Casey P.</td><td>In-Home</td><td><span class="pill pg">Confirmed</span></td></tr>
+          </tbody>
+        </table>
+        <div class="impact">+ 16 more sessions today · <strong>3 auto-filled from waitlist</strong> after morning cancellations</div>
+      </div>
+
+      <div class="col-stack">
+        <!-- RBT Coverage -->
+        <div class="pcard">
+          <div class="phead"><div class="ptitle">RBT Coverage & PTO</div><div class="pbadge bw">1 Alert</div></div>
+          <table class="tbl">
+            <thead><tr><th>RBT</th><th>Sessions</th><th>PTO</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Taylor R.</td><td>7 today</td><td>—</td><td><span class="pill pg">Available</span></td></tr>
+              <tr><td>Morgan L.</td><td>6 today</td><td>—</td><td><span class="pill pg">Available</span></td></tr>
+              <tr><td>Jordan K.</td><td>5 today</td><td>Fri requested</td><td><span class="pill po">Coverage needed</span></td></tr>
+              <tr><td>Alex M.</td><td>4 today</td><td>—</td><td><span class="pill pg">Available</span></td></tr>
+              <tr><td>Casey P.</td><td>2 today</td><td>—</td><td><span class="pill pt">Capacity available</span></td></tr>
+            </tbody>
+          </table>
+          <div class="impact">Jordan K. PTO flagged · <strong>alert sent to leadership</strong> · Casey P. available Fri for coverage</div>
+        </div>
+
+        <!-- BCBA Supervision -->
+        <div class="pcard">
+          <div class="phead"><div class="ptitle">BCBA Supervision Hour Tracking</div><div class="pbadge ba">Auto-tracked</div></div>
+          <div class="supv-item">
+            <div class="supv-info"><div class="supv-name">Dr. Reyes, Carmen</div><div class="supv-sub">22 active clients · req: 24 hrs/mo</div></div>
+            <div class="supv-bw"><div class="supv-bar ok" style="width:85%"></div></div>
+            <div class="supv-val">20.4 / 24 hrs</div>
+          </div>
+          <div class="supv-item">
+            <div class="supv-info"><div class="supv-name">Rodriguez, Marcus (BCBA)</div><div class="supv-sub">16 active clients · req: 18 hrs/mo</div></div>
+            <div class="supv-bw"><div class="supv-bar warn" style="width:55%"></div></div>
+            <div class="supv-val">9.9 / 18 hrs</div>
+          </div>
+          <div class="impact"><strong>Rodriguez flagged:</strong> supervision pace below target · alert sent to clinical director automatically</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BILLING & AUTHORIZATIONS ══ -->
+  <div class="panel" id="panel-billing">
+    <div class="stats-row">
+      <div class="stat-card"><div class="slabel">Co-pays Collected (Month)</div><div class="snum">$9,240</div><div class="ssub up">↑ 18% vs prior month</div></div>
+      <div class="stat-card"><div class="slabel">Outstanding Balances</div><div class="snum g">$4,180</div><div class="ssub warn">sequences running</div></div>
+      <div class="stat-card"><div class="slabel">Auths Expiring (60 days)</div><div class="snum r">6</div><div class="ssub warn">renewals in progress</div></div>
+      <div class="stat-card"><div class="slabel">Notes → Billing Ready</div><div class="snum">96<span style="font-size:1rem">%</span></div><div class="ssub up">↑ from 74% pre-system</div></div>
+    </div>
+
+    <div class="g2">
+      <!-- Family Balances -->
+      <div class="pcard">
+        <div class="phead"><div class="ptitle">Family Balances</div><div class="pbadge ba">Auto-delivered</div></div>
+        <div class="brow"><div class="bname">Davis, Malik</div><div class="bamt">$240</div><span class="pill pg">Paid</span></div>
+        <div class="brow"><div class="bname">Park, Jenna</div><div class="bamt">$180</div><span class="pill pg">Paid</span></div>
+        <div class="brow"><div class="bname">Thompson, James</div><div class="bamt">$320</div><span class="pill po">Pending</span></div>
+        <div class="brow"><div class="bname">Rivera, Sofia</div><div class="bamt">$480</div><span class="pill po">Day 14</span></div>
+        <div class="brow"><div class="bname">Patel, Rohan</div><div class="bamt">$640</div><span class="pill pr">Day 34</span></div>
+        <div class="brow"><div class="bname">Garcia, Elena</div><div class="bamt">$195</div><span class="pill pg">Paid</span></div>
+        <div class="brow"><div class="bname">Brown, Isaiah</div><div class="bamt">$2,100</div><span class="pill pt">Plan active</span></div>
+        <div class="brow"><div class="bname">Okafor, Emeka</div><div class="bamt">$225</div><span class="pill pg">Paid</span></div>
+        <div class="impact"><strong>$9,240 collected pre-session this month</strong> · Patel balance day 34 — escalation sequence ready</div>
+      </div>
+
+      <!-- Auth Pipeline -->
+      <div class="pcard">
+        <div class="phead"><div class="ptitle">Authorization Pipeline</div><div class="pbadge ba">Automated</div></div>
+        <div class="auth-item"><div class="auth-left"><div class="auth-name">Rivera, Sofia — Cigna</div><div class="auth-det">Renewal submitted · day 3 of review</div></div><div class="auth-right"><div class="auth-days">14 days left</div><span class="pill po">In Review</span></div></div>
+        <div class="auth-item"><div class="auth-left"><div class="auth-name">Park, Jenna — BCBS</div><div class="auth-det">Renewal reminder sent · docs pending from family</div></div><div class="auth-right"><div class="auth-days">21 days left</div><span class="pill po">Docs needed</span></div></div>
+        <div class="auth-item"><div class="auth-left"><div class="auth-name">Okafor, Emeka — Aetna / UHC</div><div class="auth-det">Dual insurance · primary carrier unconfirmed</div></div><div class="auth-right"><div class="auth-days">Flagged</div><span class="pill pr">Needs action</span></div></div>
+        <div class="auth-item"><div class="auth-left"><div class="auth-name">Davis, Malik — United</div><div class="auth-det">Renewed and approved · 60-day auth active</div></div><div class="auth-right"><div class="auth-days">60 days left</div><span class="pill pg">Active</span></div></div>
+        <div class="auth-item"><div class="auth-left"><div class="auth-name">Kim, Soo-Yeon — Cigna</div><div class="auth-det">Pending approval · submitted last week</div></div><div class="auth-right"><div class="auth-days">Day 8</div><span class="pill po">Pending</span></div></div>
+        <div class="auth-item"><div class="auth-left"><div class="auth-name">Anderson, Trey — United</div><div class="auth-det">Approved · start date coordination in progress</div></div><div class="auth-right"><div class="auth-days">Approved</div><span class="pill pg">Scheduling</span></div></div>
+        <div class="impact"><strong>0 authorization lapses since system launch</strong> · 6 renewals tracked · families notified automatically</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ AUTOMATIONS ══ -->
+  <div class="panel" id="panel-automations">
+    <div class="stats-row">
+      <div class="stat-card"><div class="slabel">Total Automations</div><div class="snum">54</div><div class="ssub">across 8 categories</div></div>
+      <div class="stat-card"><div class="slabel">Active Right Now</div><div class="snum">49</div><div class="ssub up">fully autonomous</div></div>
+      <div class="stat-card"><div class="slabel">Fired Today</div><div class="snum w" id="fired-au">247</div><div class="ssub">and counting</div></div>
+      <div class="stat-card"><div class="slabel">Needs Attention</div><div class="snum r">5</div><div class="ssub warn">assisted items</div></div>
+    </div>
+
+    <div class="pcard">
+      <div class="phead"><div class="ptitle">All Automations — Live Status</div><div class="pbadge bl">System Active</div></div>
+      <div class="g2c">
+        <div class="auto-item"><div class="aleft2"><div class="acat">Intake & Calls</div><div class="aname">AI voice agent — all inbound</div></div><div class="aright"><div class="acnt">68x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Intake & Calls</div><div class="aname">New family intake by phone</div></div><div class="aright"><div class="acnt">14x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Intake & Calls</div><div class="aname">After-hours call handling</div></div><div class="aright"><div class="acnt">9x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Intake & Calls</div><div class="aname">Missed call text follow-up</div></div><div class="aright"><div class="acnt">12x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Intake & Calls</div><div class="aname">Waitlist placement & updates</div></div><div class="aright"><div class="acnt">5x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Intake & Calls</div><div class="aname">Outbound intake follow-up seq.</div></div><div class="aright"><div class="acnt">18x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Client Onboarding</div><div class="aname">Digital intake packet delivery</div></div><div class="aright"><div class="acnt">8x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Client Onboarding</div><div class="aname">Consent form routing & tracking</div></div><div class="aright"><div class="acnt">8x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Client Onboarding</div><div class="aname">Insurance card & ID collection</div></div><div class="aright"><div class="acnt">8x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Client Onboarding</div><div class="aname">Welcome & orientation scheduling</div></div><div class="aright"><div class="acnt">4x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Scheduling</div><div class="aname">Session booking & rescheduling</div></div><div class="aright"><div class="acnt">22x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Scheduling</div><div class="aname">Multi-touch session reminders</div></div><div class="aright"><div class="acnt">43x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Scheduling</div><div class="aname">Cancellation & waitlist backfill</div></div><div class="aright"><div class="acnt">6x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Scheduling</div><div class="aname">PTO routing & coverage alerts</div></div><div class="aright"><div class="acnt">2x today</div><div class="astatus as-r">Review</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Scheduling</div><div class="aname">RBT conflict detection & alerts</div></div><div class="aright"><div class="acnt">3x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Scheduling</div><div class="aname">Slot utilization reporting</div></div><div class="aright"><div class="acnt">1x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Authorizations</div><div class="aname">Auth expiration tracking & alerts</div></div><div class="aright"><div class="acnt">18x today</div><div class="astatus as-r">Review</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Authorizations</div><div class="aname">Renewal reminder seq. to families</div></div><div class="aright"><div class="acnt">6x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Authorizations</div><div class="aname">Dual insurance flag & routing</div></div><div class="aright"><div class="acnt">2x today</div><div class="astatus as-r">Review</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Authorizations</div><div class="aname">Lapse risk alert to leadership</div></div><div class="aright"><div class="acnt">1x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Session Notes & Billing</div><div class="aname">Incomplete note reminders to RBTs</div></div><div class="aright"><div class="acnt">8x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Session Notes & Billing</div><div class="aname">Daily billing readiness digest</div></div><div class="aright"><div class="acnt">1x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Session Notes & Billing</div><div class="aname">Co-pay & balance reminders</div></div><div class="aright"><div class="acnt">14x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Session Notes & Billing</div><div class="aname">Pre-session balance alerts</div></div><div class="aright"><div class="acnt">24x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Session Notes & Billing</div><div class="aname">Collections escalation sequences</div></div><div class="aright"><div class="acnt">3x today</div><div class="astatus as-r">Review</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Family Communication</div><div class="aname">Progress update delivery</div></div><div class="aright"><div class="acnt">6x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Family Communication</div><div class="aname">Parent training reminders</div></div><div class="aright"><div class="acnt">4x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Family Communication</div><div class="aname">30/60/90-day satisfaction checks</div></div><div class="aright"><div class="acnt">6x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Family Communication</div><div class="aname">Re-engagement sequences</div></div><div class="aright"><div class="acnt">3x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Family Communication</div><div class="aname">Referral source & partner outreach</div></div><div class="aright"><div class="acnt">2x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Family Communication</div><div class="aname">IEP team & school coordination</div></div><div class="aright"><div class="acnt">4x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Family Communication</div><div class="aname">Pediatrician referral follow-up</div></div><div class="aright"><div class="acnt">2x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Family Communication</div><div class="aname">Google review request (milestone)</div></div><div class="aright"><div class="acnt">2x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Staff & Clinical Ops</div><div class="aname">Daily ops digest to leadership</div></div><div class="aright"><div class="acnt">1x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Staff & Clinical Ops</div><div class="aname">New staff onboarding sequences</div></div><div class="aright"><div class="acnt">4x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Staff & Clinical Ops</div><div class="aname">BCBA supervision hour tracking</div></div><div class="aright"><div class="acnt">2x today</div><div class="astatus as-r">Review</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Staff & Clinical Ops</div><div class="aname">Credential expiration tracking</div></div><div class="aright"><div class="acnt">1x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Compliance</div><div class="aname">Consent & release form tracking</div></div><div class="aright"><div class="acnt">8x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Compliance</div><div class="aname">HIPAA-compliant comm. routing</div></div><div class="aright"><div class="acnt">68x today</div><div class="astatus as-a">Active</div></div></div>
+        <div class="auto-item"><div class="aleft2"><div class="acat">Compliance</div><div class="aname">Document retention & audit log</div></div><div class="aright"><div class="acnt">24x today</div><div class="astatus as-a">Active</div></div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end content -->
+
+<script>
+  function sw(id) {
+    const ids = ['overview','clients','schedule','billing','automations'];
+    document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ids[i]===id));
+    document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id==='panel-'+id));
+  }
+
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent = 'Updated ' + now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});
+  }
+  updateClock();
+  setInterval(updateClock, 60000);
+
+  let fired = 247;
+  setInterval(() => {
+    fired += Math.floor(Math.random()*3)+1;
+    ['fired-ov','fired-au'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent=fired; });
+  }, 7000);
+
+  document.querySelectorAll('.abtn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.textContent = '✓ Done';
+      this.style.opacity = '0.45';
+      this.style.pointerEvents = 'none';
+      setTimeout(() => { this.closest('.aitem').style.opacity = '0.35'; }, 300);
+    });
+  });
+</script>
+
+</body>
+</html>
